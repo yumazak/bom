@@ -16,4 +16,21 @@ pub fn build_cli() -> App<'static, 'static> {
                 .takes_value(true) 
             )
         )
+        .subcommand(SubCommand::with_name("delete")
+            .about("delete boilerplate")
+            .arg(Arg::with_name("name")
+                .help("boilerplate name")
+                .required(true)
+                .takes_value(true) 
+            )
+            // .arg(Arg::with_name("project_name")
+            //     .help("project name")
+            //     .takes_value(true) 
+            // )
+            // .arg(Arg::with_name("current_flag")
+            //     .help("init current directory")                // ヘルプメッセージ
+            //     .short("c")                         // ショートコマンド
+            //     .long("cur")                       // ロングコマンド
+            // )
+        )
 }
