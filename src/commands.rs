@@ -33,7 +33,7 @@ pub fn delete(path: &Path) -> io::Result<()> {
         }
     }
     match fs::remove_dir_all(path){
-        Ok(_) => println!("success"),
+        Ok(_) => {},
         Err(err) => println!("{}", err),
     }
     Ok(())

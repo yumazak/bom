@@ -32,14 +32,20 @@ fn main() {
                 Err(err) => println!("Error: {}", err),
             }
             println!("{:?}", &target);
-            commands::add(Path::new(o), &target);
+            match commands::add(Path::new(o), &target){
+                Ok(_) => println!("success"),
+                Err(err) => println!("err"),
+            };
         }
     }
 
-    if let Some(ref matches) = matches.subcommand_matches("delete") {
+    if let Some(ref matches) = matches.subcommand_matches("rm") {
         if let Some(name) = matches.value_of("name") {
             target = path.join(name);
-            commands::delete(&target);
+            match commands::delete(&target) {
+                Ok(_) => println!("success"),
+                Err(err) => println!("err"),
+            }
         }
     }
 }
