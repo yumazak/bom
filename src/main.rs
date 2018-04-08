@@ -15,12 +15,12 @@ fn main() {
         }
         if let Some(o) = matches.value_of("url") {
             if let Some(n) = matches.value_of("name") {
-                target = Path::new("./boilerplates").join(n);
+                target = path.join(n);
                 println!("add {:?}", &target);
             } else {
-                target = Path::new("./boilerplates").join(Path::new(o).file_name().unwrap());
+                target = path.join(Path::new(o).file_name().unwrap());
             }
-            println!("{:?}", &path);
+            println!("{:?}", &target);
             match fs::create_dir(&target) {
                 Ok(_) => {println!("path is {:?}", &target)},
                 Err(err) => println!("Error: {}", err),
