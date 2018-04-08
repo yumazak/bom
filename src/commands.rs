@@ -27,10 +27,8 @@ pub fn delete(path: &Path) -> io::Result<()> {
         let entry = entry?;
         let path = entry.path();
         if path.is_dir() {
-            println!("its dir");
             delete(&path);
         } else {
-            println!("its file");
             fs::remove_file(&path)?;
         }
     }

@@ -39,7 +39,6 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("delete") {
         if let Some(name) = matches.value_of("name") {
             target = path.join(name);
-            println!("{:?}", target);
             commands::delete(&target);
         }
     }
