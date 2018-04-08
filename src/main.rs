@@ -8,6 +8,7 @@ use std::path::Path;
 use std::env;
 fn main() {
     let matches = cli::build_cli().get_matches();
+    //add
     if let Some(ref matches) = matches.subcommand_matches("add") {
         let mut path;
         match env::home_dir() {
@@ -36,5 +37,9 @@ fn main() {
             println!("{:?}", &target);
             add::visit_dirs(Path::new(o), &target);
         }
+    }
+
+    if let Some(ref matches) = matches.subcommand_matches("delete") {
+        
     }
 }
