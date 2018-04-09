@@ -75,18 +75,3 @@ pub fn has_boiler(boiler_name: &str, path: &Path) -> io::Result<(bool)> {
     }
     Ok(false)
 }
-// pub fn init(boiler_path: &Path, project_path: &Path) -> io::Result<()> {
-//     for entry in fs::read_dir(path)? {
-//         let entry = entry?;
-//         let path = entry.path();
-//         if path.is_dir() {
-//             match path.file_name().unwrap().to_str() {
-//                 Some(name) => println!("‣{}", name),
-//                 _ => println!("can't read boiler"),
-//             }
-//         } else {
-//             println!("{:?}", path.file_name().unwrap());
-//         }
-//     }
-//     Ok(())
-// }
