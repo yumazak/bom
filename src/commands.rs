@@ -1,5 +1,5 @@
 use std::io;
-use std::fs::{self, DirEntry};
+use std::fs::{self};
 use std::path::Path;
 
 pub fn add(dir: &Path, target: &Path) -> io::Result<()> {
@@ -9,9 +9,7 @@ pub fn add(dir: &Path, target: &Path) -> io::Result<()> {
             let path = entry.path();
             let ta = &target.join(&path.file_name().unwrap());
             if path.is_dir() {
-                if(path.file_name().unwrap() == ".git" || path.file_name().unwrap() == "node_modules") {
-                    continue;
-                }
+                if path.file_name().unwrap() == ".git" || path.file_name().unwrap() == "node_modules" { continue; }                   
                 fs::create_dir(ta);
                 add(&path, ta)?;
             } else {
@@ -54,7 +52,7 @@ pub fn list(path: &Path) -> io::Result<()> {
     }
     Ok(())
 }
-pub fn hasBoiler(boiler_name: &str, path: &Path) -> io::Result<(bool)> {
+pub fn has_boiler(boiler_name: &str, path: &Path) -> io::Result<(bool)> {
     for entry in fs::read_dir(path)? {
         let entry = entry?;
         let path = entry.path();

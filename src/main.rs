@@ -9,7 +9,7 @@ use std::process;
 use std::env;
 fn main() {
     let matches = cli::build_cli().get_matches();
-    let mut path;
+    let path;
     let mut target;
     match env::home_dir() {
         Some(p) => path = p.join(".bom/boilerplates"),
@@ -30,12 +30,12 @@ fn main() {
             }
             match fs::create_dir(&target) {
                 Ok(_) => {},
-                Err(err) => println!("Error: {}", err),
+                Err(err) => println!("{}", err),
             }
             println!("{:?}", &target);
             match commands::add(Path::new(o), &target){
                 Ok(_) => println!("success"),
-                Err(err) => println!("Error"),
+                Err(err) => println!("{}", err),
             };
         }
     }
@@ -46,7 +46,7 @@ fn main() {
             target = path.join(name);
             match commands::delete(&target) {
                 Ok(_) => println!("removed {}", name),
-                Err(err) => println!("err"),
+                Err(err) => println!("{}", err),
             }
         }
     }
@@ -56,7 +56,7 @@ fn main() {
         println!("\nBoilerplate List\n");
         match commands::list(&path) {
             Ok(_) => {},
-            Err(err) => println!("err"),
+            Err(err) => println!("{}", err),
         }
         println!("");
     }
@@ -64,7 +64,7 @@ fn main() {
     //init
     if let Some(ref matches) = matches.subcommand_matches("init") {
         if let Some(boiler_name) = matches.value_of("boiler_name") {
-            if commands::hasBoiler(boiler_name, &path).unwrap() {
+            if commands::has_boiler(boiler_name, &path).unwrap() {
                 if let Some(project_name) = matches.value_of("project_name") {
                     if project_name == "." {
                         target = env::current_dir().unwrap();
@@ -76,14 +76,11 @@ fn main() {
                 }
                 match fs::create_dir(&target) {
                     Ok(_) => {},
-                    Err(err) => {
-                        println!("folder is already exists");
-                        process::exit(0);
-                    },
+                    Err(_) => {},
                 }
                 match commands::add(&path.join(boiler_name), &target){
                     Ok(_) => println!("success"),
-                    Err(err) => println!("Error"),
+                    Err(_) => println!("Error"),
                 };
             } else {
                 println!("can't find {}", boiler_name);
