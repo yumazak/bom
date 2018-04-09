@@ -23,14 +23,8 @@ pub fn build_cli() -> App<'static, 'static> {
                 .required(true)
                 .takes_value(true) 
             )
-            // .arg(Arg::with_name("project_name")
-            //     .help("project name")
-            //     .takes_value(true) 
-            // )
-            // .arg(Arg::with_name("current_flag")
-            //     .help("init current directory")                // ヘルプメッセージ
-            //     .short("c")                         // ショートコマンド
-            //     .long("cur")                       // ロングコマンド
-            // )
+        )
+        .subcommand(SubCommand::with_name("list")
+            .about("boilerplates list")
         )
 }

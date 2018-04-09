@@ -34,7 +34,7 @@ fn main() {
             println!("{:?}", &target);
             match commands::add(Path::new(o), &target){
                 Ok(_) => println!("success"),
-                Err(err) => println!("err"),
+                Err(err) => println!("Error"),
             };
         }
     }
@@ -43,9 +43,17 @@ fn main() {
         if let Some(name) = matches.value_of("name") {
             target = path.join(name);
             match commands::delete(&target) {
-                Ok(_) => println!("success"),
+                Ok(_) => println!("removed {}", name),
                 Err(err) => println!("err"),
             }
+        }
+    }
+    
+    if let Some(_) = matches.subcommand_matches("list") {
+        println!("Boilerplate List");
+        match commands::list(&path) {
+            Ok(_) => {},
+            Err(err) => println!("err"),
         }
     }
 }
