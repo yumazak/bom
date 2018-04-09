@@ -4,6 +4,7 @@ mod cli;
 mod commands;
 use std::fs;
 use std::path::Path;
+use std::process;
 
 use std::env;
 fn main() {
@@ -58,5 +59,35 @@ fn main() {
             Err(err) => println!("err"),
         }
         println!("");
+    }
+
+    //init
+    if let Some(ref matches) = matches.subcommand_matches("init") {
+        if let Some(boiler_name) = matches.value_of("boiler_name") {
+            if commands::hasBoiler(boiler_name, &path).unwrap() {
+                if let Some(project_name) = matches.value_of("project_name") {
+                    if project_name == "." {
+                        target = env::current_dir().unwrap();
+                    } else {
+                        target = Path::new(project_name).to_path_buf();
+                    }
+                } else {
+                    target = Path::new(boiler_name).to_path_buf();
+                }
+                match fs::create_dir(&target) {
+                    Ok(_) => {},
+                    Err(err) => {
+                        println!("folder is already exists");
+                        process::exit(0);
+                    },
+                }
+                match commands::add(&path.join(boiler_name), &target){
+                    Ok(_) => println!("success"),
+                    Err(err) => println!("Error"),
+                };
+            } else {
+                println!("can't find {}", boiler_name);
+            }
+        }
     }
 }
