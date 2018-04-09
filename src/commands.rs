@@ -9,7 +9,7 @@ pub fn add(dir: &Path, target: &Path) -> io::Result<()> {
             let path = entry.path();
             let ta = &target.join(&path.file_name().unwrap());
             if path.is_dir() {
-                if(path.file_name().unwrap() == ".git") {
+                if(path.file_name().unwrap() == ".git" || path.file_name().unwrap() == "node_modules") {
                     continue;
                 }
                 fs::create_dir(ta);

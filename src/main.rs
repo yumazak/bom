@@ -39,6 +39,7 @@ fn main() {
         }
     }
 
+    //remove
     if let Some(ref matches) = matches.subcommand_matches("rm") {
         if let Some(name) = matches.value_of("name") {
             target = path.join(name);
@@ -49,11 +50,13 @@ fn main() {
         }
     }
     
+    //list
     if let Some(_) = matches.subcommand_matches("list") {
-        println!("Boilerplate List");
+        println!("\nBoilerplate List\n");
         match commands::list(&path) {
             Ok(_) => {},
             Err(err) => println!("err"),
         }
+        println!("");
     }
 }
