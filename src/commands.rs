@@ -45,7 +45,7 @@ pub fn list(path: &Path) -> io::Result<()> {
         if path.is_dir() {
             has_boiler = true;
             match path.file_name().unwrap().to_str() {
-                Some(name) => println!("  ‣{}", name),
+                Some(name) => println!("  ‣ {}", name),
                 _ => println!("can't read boiler"),
             }
         } else {

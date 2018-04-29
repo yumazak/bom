@@ -60,6 +60,16 @@ fn main() {
         }
         println!("");
     }
+    
+    //ls
+    if let Some(_) = matches.subcommand_matches("ls") {
+        println!("\nBoilerplate List\n");
+        match commands::list(&path) {
+            Ok(_) => {},
+            Err(err) => println!("{}", err),
+        }
+        println!("");
+    }
 
     //init
     if let Some(ref matches) = matches.subcommand_matches("init") {
