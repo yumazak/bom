@@ -24,12 +24,10 @@ pub fn build_cli() -> App<'static, 'static> {
                 .takes_value(true) 
             )
         )
-        .subcommand(SubCommand::with_name("list")
-            .about("boilerplate list")
-        )
         .subcommand(SubCommand::with_name("ls")
             .about("boilerplate list")
         )
+
         .subcommand(SubCommand::with_name("init")
             .about("initialize project")
             .arg(Arg::with_name("boiler_name")

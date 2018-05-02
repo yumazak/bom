@@ -52,16 +52,6 @@ fn main() {
     }
     
     //list
-    if let Some(_) = matches.subcommand_matches("list") {
-        println!("\nBoilerplate List\n");
-        match commands::list(&path) {
-            Ok(_) => {},
-            Err(err) => println!("{}", err),
-        }
-        println!("");
-    }
-    
-    //ls
     if let Some(_) = matches.subcommand_matches("ls") {
         println!("\nBoilerplate List\n");
         match commands::list(&path) {
