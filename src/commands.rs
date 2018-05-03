@@ -25,12 +25,18 @@ pub fn add(dir: &Path, target: &Path, ignore: &Vec<String>) -> io::Result<()> {
             println!("{:?}", ignore);
             println!("{}", env::current_dir().unwrap().as_path().to_str().unwrap().replace("\\", "/"));
             println!("{}", path.to_str().unwrap().replace("\\", "/"));
-            // if ignore.contains(path.to_str().unwrap().replace("\\", "/")) {
-            //     println!("{:?} is ignore", path);
-            // }
+            if ignore.contains(&path.to_str().unwrap().replace("\\", "/")) {
+                println!("{:?} is ignore", path);
+            }
             let ta = &target.join(&path.file_name().unwrap());
             if path.is_dir() {
-                if path.file_name().unwrap() == ".git" || path.file_name().unwrap() == "node_modules" { continue; }                   
+                let name = path.file_name().unwrap();
+                if name == ".git" || name == "node_modules"{ continue; }
+                let mut name2 = String::from("/");
+                name2.push_str(name.to_str().unwrap());
+                name2.push_str("/");
+                println!("name is {:?}", name2);
+                if ignore.contains(&name2) {println!("contains")}
                 fs::create_dir(ta);
                 add(&path, ta, ignore)?;
             } else {
@@ -44,19 +50,21 @@ pub fn add(dir: &Path, target: &Path, ignore: &Vec<String>) -> io::Result<()> {
 // fn reg(str: String) -> String {
 //     let re = Regex::new(r"[/*(^[/]+)/*]+").unwrap();
 // }
-pub fn get_ignore() -> Vec<String>{
-    let path = Path::new(".gitignore");
+pub fn get_ignore(dir: &Path) -> Vec<String>{
+    let path = dir.join(".gitignore");
+    println!("path is {:?}", path);
+    // let path = Path::new(".gitignore");
     let display = path.display();
+    let mut s = String::new();    
+    let mut v: Vec<String> = vec![];    
 
     let mut file = match File::open(&path) {
-        Err(why) => panic!("couldn't open {}", display),
+        Err(why) => {return v},
         Ok(file) => file,
     };
 
-    let mut s = String::new();
-    let mut v: Vec<String> = vec![];    
     match file.read_to_string(&mut s) {
-        Err(why) => panic!("couldn't read {}", display),
+        Err(why) => {},
         Ok(_) => {
             // v.push(s.split_whitespace().collect());
             v = s.split_whitespace().map(|s| s.to_string()).collect();

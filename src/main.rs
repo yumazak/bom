@@ -30,7 +30,7 @@ fn main() {
                 Ok(_) => {},
                 Err(err) => println!("{}", err),
             }
-            match commands::add(Path::new(o), &target, &commands::get_ignore()){
+            match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o))){
                 Ok(_) => println!("success"),
                 Err(err) => println!("{}", err),
             };
@@ -75,7 +75,7 @@ fn main() {
                     Ok(_) => {},
                     Err(_) => {},
                 }
-                match commands::add(&path.join(boiler_name), &target, &commands::get_ignore()){
+                match commands::add(&path.join(boiler_name), &target, &commands::get_ignore(&path.join(boiler_name))){
                     Ok(_) => println!("success"),
                     Err(_) => println!("Error"),
                 };
