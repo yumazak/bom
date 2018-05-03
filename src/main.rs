@@ -4,8 +4,6 @@ mod cli;
 mod commands;
 use std::fs;
 use std::path::Path;
-use std::process;
-
 use std::env;
 fn main() {
     let matches = cli::build_cli().get_matches();
@@ -32,8 +30,7 @@ fn main() {
                 Ok(_) => {},
                 Err(err) => println!("{}", err),
             }
-            println!("{:?}", &target);
-            match commands::add(Path::new(o), &target){
+            match commands::add(Path::new(o), &target, &commands::get_ignore()){
                 Ok(_) => println!("success"),
                 Err(err) => println!("{}", err),
             };
@@ -78,7 +75,7 @@ fn main() {
                     Ok(_) => {},
                     Err(_) => {},
                 }
-                match commands::add(&path.join(boiler_name), &target){
+                match commands::add(&path.join(boiler_name), &target, &commands::get_ignore()){
                     Ok(_) => println!("success"),
                     Err(_) => println!("Error"),
                 };
