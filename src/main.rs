@@ -8,9 +8,13 @@ use std::env;
 fn main() {
     let matches = cli::build_cli().get_matches();
     let path;
+    let root;
     let mut target;
     match env::home_dir() {
-        Some(p) => path = p.join(".bom/boilerplates"),
+        Some(p) => {
+            path = p.join(".bom/boilerplates");
+            root = p.join(".bom/.bomignore");
+        }
         None => panic!("Impossible to get your home dir!"),
     }
     fs::create_dir(&path);
@@ -30,7 +34,8 @@ fn main() {
                 Ok(_) => {},
                 Err(err) => println!("{}", err),
             }
-            match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o))){
+            println!("{:?}", root);
+            match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o), &root), ""){
                 Ok(_) => println!("success"),
                 Err(err) => println!("{}", err),
             };
@@ -75,7 +80,7 @@ fn main() {
                     Ok(_) => {},
                     Err(_) => {},
                 }
-                match commands::add(&path.join(boiler_name), &target, &commands::get_ignore(&path.join(boiler_name))){
+                match commands::add(&path.join(boiler_name), &target, &commands::get_ignore(&path.join(boiler_name), &root), ""){
                     Ok(_) => println!("success"),
                     Err(_) => println!("Error"),
                 };
