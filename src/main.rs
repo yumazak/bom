@@ -103,4 +103,38 @@ fn main() {
             }
         }
     }
+
+    //ignore
+    if let Some(ref matches) = matches.subcommand_matches("ignore") {
+        if let Some(_) = matches.subcommand_matches("ls") {
+            println!("\n Global ignore files\n");
+            match commands::ignore_list(&root) {
+                Ok(_) => {},
+                Err(err) => println!("{}", err),
+            }
+            println!("");
+        }
+        if let Some(matches) = matches.subcommand_matches("add") {
+            // if let Some(n) = matches.value_of("name") {
+            //     target = path.join(n);
+            // } else {
+            //     if o == "." {
+            //         target = path.join(env::current_dir().unwrap().as_path().file_name().unwrap());
+            //     } else {
+            //         target = path.join(Path::new(o).file_name().unwrap());
+            //     }
+            // }
+            if let Some(n) = matches.value_of("name") {
+                match commands::ignore_add(&root, n.to_string()) {
+                    Ok(_) => {println!("add {} to ignore list", n)},
+                    Err(err) => println!("{}", err),
+                }
+            } else {
+                println!("nothing");
+            }
+  
+            println!("");
+        }
+    }
+
 }
