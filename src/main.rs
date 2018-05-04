@@ -115,19 +115,22 @@ fn main() {
             println!("");
         }
         if let Some(matches) = matches.subcommand_matches("add") {
-            // if let Some(n) = matches.value_of("name") {
-            //     target = path.join(n);
-            // } else {
-            //     if o == "." {
-            //         target = path.join(env::current_dir().unwrap().as_path().file_name().unwrap());
-            //     } else {
-            //         target = path.join(Path::new(o).file_name().unwrap());
-            //     }
-            // }
             if let Some(n) = matches.value_of("name") {
                 match commands::ignore_add(&root, n.to_string()) {
                     Ok(_) => {println!("add {} to ignore list", n)},
                     Err(err) => println!("{}", err),
+                }
+            } else {
+                println!("nothing");
+            }
+  
+            println!("");
+        }
+        if let Some(matches) = matches.subcommand_matches("rm") {
+            if let Some(n) = matches.value_of("name") {
+                match commands::ignore_remove(&root, n.to_string()) {
+                    Ok(_) => {println!("remove {} from ignore list", n)},
+                    Err(_) => println!("can't find {}", n),
                 }
             } else {
                 println!("nothing");

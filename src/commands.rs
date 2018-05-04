@@ -6,7 +6,6 @@ use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use self::regex::Regex;
 use std::env;
-
 pub fn add(dir: &Path, target: &Path, ignore: &Vec<String>, root: &str) -> io::Result<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
@@ -163,7 +162,44 @@ pub fn ignore_add(ignore_path: &Path, name: String) -> io::Result<()> {
     let mut buffer = File::create(ignore_path)?;
     v.push(name);
     for n in &v {
-        println!("{}", n);
+        match buffer.write_all(n.as_bytes()){
+            Err(why) => println!("{:?}", why),
+            Ok(_) => {}
+        }
+        match buffer.write_all(b"\n"){
+            Err(why) => println!("{:?}", why),
+            Ok(_) => {}
+        }
+    }
+
+    Ok(())
+}
+
+pub fn ignore_remove(ignore_path: &Path, name: String) -> io::Result<()> {
+    let mut s = String::new();
+    let mut v: Vec<String> = vec![];
+    
+    match File::open(&ignore_path) {
+        Err(why) => {},
+        Ok(mut file) => {
+            match file.read_to_string(&mut s) {
+                Err(why) => {},
+                Ok(_) => {
+                    v = s.split_whitespace().map(|s| s.to_string()).collect();
+                }
+            }
+        }
+    };
+    if !v.contains(&name) {return Ok(());}
+
+    match fs::remove_file(ignore_path) {
+        Err(why) => {},
+        Ok(_) => {}
+    }
+
+    let mut buffer = File::create(ignore_path)?;
+    for n in &v {
+        if(n.to_string() == name) {continue;} 
         match buffer.write_all(n.as_bytes()){
             Err(why) => println!("{:?}", why),
             Ok(_) => {}
