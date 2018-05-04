@@ -30,11 +30,25 @@ fn main() {
                     target = path.join(Path::new(o).file_name().unwrap());
                 }
             }
+
+            if matches.is_present("force") {
+                match fs::read_dir(&target) {
+                    Ok(_) => {
+                        match commands::delete(&target) {
+                            Ok(_) => {},
+                            Err(err) => println!("{}", err),
+                        }
+                    }
+                    Err(err) => {println!("{}", err)}
+                }
+            }
+
             match fs::create_dir(&target) {
                 Ok(_) => {},
-                Err(err) => println!("{}", err),
+                Err(err) => {
+                    panic!("{}", err);
+                }
             }
-            println!("{:?}", root);
             match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o), &root), ""){
                 Ok(_) => println!("success"),
                 Err(err) => println!("{}", err),
