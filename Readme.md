@@ -4,7 +4,7 @@ bomはBoilerplateやテンプレートを簡単に管理するためのCLIツー
 
 ## インストール方法
 
-まず[bom](https://drive.google.com/drive/u/0/folders/1TdUFsazCp053W2KYk0g9qQ23DhirXqwG)から自分のOSに合わせたインストーラをダウンロードします。  
+まず[Google Drive](https://drive.google.com/drive/u/0/folders/1TdUFsazCp053W2KYk0g9qQ23DhirXqwG)から自分のOSに合わせたインストーラをダウンロードします。  
 そして実行ファイルを実行して完了。
 
 以下を実行してバージョンが表示されれば成功
