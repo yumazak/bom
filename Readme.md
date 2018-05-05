@@ -43,7 +43,7 @@ bom ls
 bom init [template_name] <project_name>
 ```  
 ## ignore
-テンプレートに加えないファイル、フォルダを設定します。
+テンプレートに加えないファイル、フォルダのグローバル設定をします。
 ### ignore add
 ignoreリストに追加します。
 ```bash
