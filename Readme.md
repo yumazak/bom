@@ -5,13 +5,13 @@ bomはBoilerplateやテンプレートを簡単に管理するためのCLIツー
 ## インストール方法
 
 まず[Google Drive](https://drive.google.com/drive/u/0/folders/1TdUFsazCp053W2KYk0g9qQ23DhirXqwG)から自分のOSに合わせたインストーラをダウンロードします。  
-そして実行ファイルを実行して完了。
-
+そして実行ファイルを実行して完了。ホームディレクトリ直下に.bomというフォルダを作成します。  
 以下を実行してバージョンが表示されれば成功
 
 ```bash
 bom -V
 ```
+
 
 ## コマンド
 
