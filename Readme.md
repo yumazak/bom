@@ -44,6 +44,7 @@ bom init [template_name] <project_name>
 ```  
 ## ignore
 テンプレートに加えないファイル、フォルダのグローバル設定をします。
+デフォルトでは".git"と".bomignore"が設定されています。
 ### ignore add
 ignoreリストに追加します。
 ```bash
