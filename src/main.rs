@@ -1,10 +1,19 @@
 #[macro_use]
 extern crate clap;
+extern crate termion;
+
 mod cli;
 mod commands;
 use std::fs;
 use std::path::Path;
 use std::env;
+use std::io::{self, Read, Write, stdin, stdout};
+
+use termion::event::Key;
+use termion::input::TermRead;
+use termion::raw::IntoRawMode;
+use termion::screen::*;
+
 fn main() {
     let matches = cli::build_cli().get_matches();
     let path;
@@ -79,28 +88,104 @@ fn main() {
 
     //init
     if let Some(ref matches) = matches.subcommand_matches("init") {
-        if let Some(boiler_name) = matches.value_of("boiler_name") {
-            if commands::has_boiler(boiler_name, &path).unwrap() {
-                if let Some(project_name) = matches.value_of("project_name") {
-                    if project_name == "." {
-                        target = env::current_dir().unwrap();
-                    } else {
-                        target = Path::new(project_name).to_path_buf();
+        let mut boiler_name  = String::new();
+        let mut project_name = String::new();
+
+        if matches.is_present("interactive") {
+            let mut stdout           = stdout().into_raw_mode().unwrap();
+            let mut cuurent_position = 0;
+            let     stdin            = stdin();
+            let     projects         = commands::get_projects(&path).unwrap();
+
+            commands::show_projects_with_key_position(&mut stdout, cuurent_position, projects.clone());
+
+            for c in stdin.keys() {
+                match c.unwrap() {
+                    Key::Char('\n') | Key::Ctrl('c') => break,
+
+                    Key::Down => {
+                        if cuurent_position < projects.len() - 1 { cuurent_position += 1; }
+                        commands::show_projects_with_key_position(&mut stdout, cuurent_position, projects.clone());
                     }
-                } else {
-                    target = Path::new(boiler_name).to_path_buf();
+
+                    Key::Up => {
+                        if cuurent_position > 0 { cuurent_position -= 1 }
+                        commands::show_projects_with_key_position(&mut stdout, cuurent_position, projects.clone());
+                    }
+
+                    _ => {}
                 }
-                match fs::create_dir(&target) {
-                    Ok(_) => {},
-                    Err(_) => {},
-                }
-                match commands::add(&path.join(boiler_name), &target, &commands::get_ignore(&path.join(boiler_name), &root), ""){
-                    Ok(_) => println!("success"),
-                    Err(_) => println!("Error"),
-                };
-            } else {
-                println!("can't find {}", boiler_name);
+                stdout.flush().unwrap();
             }
+            let stdin = io::stdin();
+            let mut stdin = stdin.lock();
+            let mut is_started_input = false;
+            boiler_name = projects[cuurent_position].clone();
+            print!("{}Project name: {}{}", termion::cursor::Goto(0, 5 + projects.len() as u16), &boiler_name, termion::cursor::Show);
+            stdout.flush().unwrap();
+            for c in stdin.keys() {
+                match c.unwrap() {
+                    Key::Char('\n') | Key::Ctrl('c') => break,
+
+                    Key::Char(c) => {
+                        if !is_started_input {
+                            is_started_input = true;
+                            let line = format!("Project name: {}", boiler_name);
+                            print!("{}{}", termion::clear::CurrentLine, termion::cursor::Left(line.len() as u16));
+                            print!("Project name: ");
+                        }
+                        print!("{}", c);
+                        project_name.push(c);
+                    }
+                    Key::Backspace => {
+                        if project_name.is_empty() {
+                            continue;
+                        }
+                        project_name.pop();
+                        let line = format!("Project name: {}", project_name);
+                        print!("{}{}{}", termion::clear::CurrentLine, termion::cursor::Left(line.len() as u16 + 1), line);
+                    }
+                    any => println!("{:?}", any)
+                }
+                stdout.flush().unwrap();
+            }
+            stdout.flush().unwrap();
+
+            if !is_started_input { project_name = boiler_name.clone() }
+            // let project_name = stdin.read_line().unwrap().unwrap();
+            // println!("{}", project_name);         
+        }
+
+        if boiler_name.is_empty() {
+            if let Some(name) = matches.value_of("boiler_name") {
+                boiler_name = name.to_string();
+            } else { //名前を受け取らなかったら
+
+            }
+        }
+
+        if project_name.is_empty() {
+            if let Some(name) = matches.value_of("project_name") {
+                project_name = name.to_string();
+            }
+        }
+
+        if commands::has_boiler(&boiler_name, &path).unwrap() {
+            if project_name == "." {
+                target = env::current_dir().unwrap();
+            } else {
+                target = Path::new(&project_name).to_path_buf();
+            }
+            match fs::create_dir(&target) {
+                Ok(_) => {},
+                Err(_) => {},
+            }
+            match commands::add(&path.join(&boiler_name), &target, &commands::get_ignore(&path.join(&boiler_name), &root), ""){
+                Ok(_) => println!("success"),
+                Err(_) => println!("Error"),
+            };
+        } else {
+            println!("can't find {}", boiler_name);
         }
     }
 
