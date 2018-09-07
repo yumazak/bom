@@ -119,7 +119,7 @@ fn main() {
             }
             let stdin = io::stdin();
             let mut stdin = stdin.lock();
-            let mut isStartedInput = false;
+            let mut is_started_input = false;
             boiler_name = projects[cuurent_position].clone();
             print!("{}Project name: {}{}", termion::cursor::Goto(0, 5 + projects.len() as u16), &boiler_name, termion::cursor::Show);
             stdout.flush().unwrap();
@@ -128,8 +128,8 @@ fn main() {
                     Key::Char('\n') | Key::Ctrl('c') => break,
 
                     Key::Char(c) => {
-                        if !isStartedInput {
-                            isStartedInput = true;
+                        if !is_started_input {
+                            is_started_input = true;
                             let line = format!("Project name: {}", boiler_name);
                             print!("{}{}", termion::clear::CurrentLine, termion::cursor::Left(line.len() as u16));
                             print!("Project name: ");
@@ -150,6 +150,8 @@ fn main() {
                 stdout.flush().unwrap();
             }
             stdout.flush().unwrap();
+
+            if !is_started_input { project_name = boiler_name.clone() }
             // let project_name = stdin.read_line().unwrap().unwrap();
             // println!("{}", project_name);         
         }
