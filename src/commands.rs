@@ -6,6 +6,8 @@ use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use self::regex::Regex;
 use std::env;
+use termion;
+
 pub fn add(dir: &Path, target: &Path, ignore: &Vec<String>, root: &str) -> io::Result<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
@@ -77,6 +79,42 @@ pub fn delete(path: &Path) -> io::Result<()> {
         Err(err) => println!("{}", err),
     }
     Ok(())
+}
+// -> io::Result<Vec<String>>
+pub fn get_projects (path: &Path) -> io::Result<Vec<String>> {
+    let mut projects = Vec::new();
+
+    for entry in fs::read_dir(path)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            match path.file_name().unwrap().to_str() {
+                Some(project) => projects.push(project.to_string()),
+                None => println!("error")
+            }
+        } else {
+            let project = path.file_name().unwrap().to_str().unwrap().to_string();
+            projects.push(project);
+        }
+    }
+    Ok(projects)
+}
+use termion::{color, style};
+pub fn show_projects_with_key_position<W: Write> (screen: &mut W, positon: usize, projects: Vec<String>) {
+    let position_x = 4;
+    let offset_y   = 4;
+
+    write!(screen, "{}{}{}", termion::clear::All, termion::cursor::Goto(0, 1), termion::cursor::Hide);
+    println!("\nBoilerplate List\n");
+    for i in 0..projects.len() {
+        write!(screen, "{}{}", termion::cursor::Goto(position_x, (i + 4) as u16), termion::cursor::Hide);
+        if i == positon {
+            println!("‣{} {}{}", color::Fg(color::Green), projects[i], style::Reset);
+        } else {
+            println!(" {}", projects[i]);
+        }
+        // println!("{}{}", color::Fg(color::Red), projects[i]);
+    }
 }
 
 pub fn list(path: &Path) -> io::Result<()> {
