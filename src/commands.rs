@@ -30,39 +30,32 @@ pub fn add(dir: &Path, target: &Path, ignore: &Vec<String>, root: &str) -> io::R
     }
     Ok(())
 }
-
 pub fn get_ignore(dir: &Path, root: &Path) -> io::Result<Vec<String>> {
     let mut v: Vec<String>  = vec![];
     let mut v2: Vec<String> = vec![];
     let mut s               = String::new();
     let     path            = dir.join(".bomignore");
 
-    let mut file = match File::open(&path) {
-        Err(_) => { return Ok(v) },
-        Ok(file) => file,
-    };
+    let mut file = try!(File::open(&path));
 
-    let mut env_ignore = match File::open(&root) {
-        Err(_) => {
-            println!("error");
-            return Ok(v)
-        },
-        Ok(file) => file,
-    };
+    let mut env_ignore = try!(File::open(&root));
 
-    match file.read_to_string(&mut s) {
-        Err(_) => {},
-        Ok(_)  => v = s.split_whitespace().map(|s| s.to_string()).collect()
+    if file.read_to_string(&mut s).is_ok() {
+        v = s.split_whitespace().map(|s| s.to_string()).collect()
+    } else {
+        println!("Can't read {:?}", dir);
     }
-    match env_ignore.read_to_string(&mut s) {
-        Err(_) => {},
-        Ok(_)  => {
-            v2 = s.split_whitespace().map(|s| s.to_string()).collect();
-            v.extend(v2.iter().cloned());
-        }
+
+    if env_ignore.read_to_string(&mut s).is_ok() {
+        v2 = s.split_whitespace().map(|s| s.to_string()).collect();
+        v.extend(v2.iter().cloned());
+    } else {
+        println!("Can't read {:?}", root)
     }
+
     Ok(v)
 } 
+
 pub fn delete(path: &Path) -> io::Result<()> {
     for entry in fs::read_dir(path)? {
         let entry = entry?;
@@ -75,10 +68,7 @@ pub fn delete(path: &Path) -> io::Result<()> {
         }
     }
 
-    match fs::remove_dir_all(path){
-        Ok(_)    => {},
-        Err(err) => println!("{}", err),
-    }
+    fs::remove_dir_all(path)?;
 
     Ok(())
 }
@@ -93,7 +83,7 @@ pub fn get_projects (path: &Path) -> io::Result<Vec<String>> {
         if path.is_dir() {
             match path.file_name().unwrap().to_str() {
                 Some(project) => projects.push(project.to_string()),
-                None          => println!("error")
+                None          => println!("Error")
             }
         } else {
             let project = path.file_name().unwrap().to_str().unwrap().to_string();
@@ -160,7 +150,7 @@ pub fn has_boiler(boiler_name: &str, path: &Path) -> io::Result<(bool)> {
                         return Ok(true)
                     }
                 },
-                _ => println!("can't read boiler"),
+                _ => println!("Can't read boiler"),
             }
         } else {
             println!("{:?}", path.file_name().unwrap());
@@ -174,10 +164,7 @@ pub fn ignore_list(ignore_path: &Path) -> io::Result<()> {
     let mut s = String::new();
     let mut v: Vec<String> = vec![];
     
-    let mut global_ignore = match File::open(&ignore_path) {
-        Err(why) => { panic!("{}", why); },
-        Ok(file) => file,
-    };
+    let mut global_ignore = File::open(&ignore_path)?;
 
     match global_ignore.read_to_string(&mut s) {
         Err(why) => { panic!("{}", why); },
