@@ -190,11 +190,9 @@ fn main() {
             }
 
             fs::create_dir(&target_project_path).expect("Can't create dir");
-            println!("{:?}", boilerplates_path.join(&boiler_name));
-            println!("{:?}", global_ignore_path);
             match commands::add(&boilerplates_path.join(&boiler_name), &target_project_path, &commands::get_ignore(&boilerplates_path.join(&boiler_name), &global_ignore_path).unwrap(), ""){
-                Ok(_)  => println!("success"),
-                Err(_) => println!("Error"),
+                Ok(_)  => println!("\nSuccess"),
+                Err(_) => println!("\nError"),
             };
         } else {
             println!("Can't find {}", boiler_name);

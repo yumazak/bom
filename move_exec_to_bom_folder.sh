@@ -1,0 +1,1 @@
+mv target/release/bom ~/.bom/bin
