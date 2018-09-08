@@ -12,6 +12,7 @@ use std::io::{self, Write, stdin, stdout};
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
+use termion::{color, style};
 
 fn main() {
     let matches = cli::build_cli().get_matches();
@@ -122,8 +123,9 @@ fn main() {
             boiler_name              = projects[cuurent_position].clone();
 
             if pressed_ctrl_c { return; }
-
-            print!("{}Project name: {}{}", termion::cursor::Goto(0, 5 + projects.len() as u16), &boiler_name, termion::cursor::Show);
+            
+            print!("{}Project name: {}{}{}", termion::cursor::Goto(0, 5 + projects.len() as u16), color::Fg(color::LightBlack), &boiler_name, style::Reset);
+            print!("{}{}", termion::cursor::Left(boiler_name.len() as u16), termion::cursor::Show);
 
             //input Project name
             stdout.flush().unwrap();
