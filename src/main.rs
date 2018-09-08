@@ -26,7 +26,9 @@ fn main() {
         }
         None => panic!("Impossible to get your home dir!"),
     }
-    fs::create_dir(&path).expect("can't create dir");
+    
+    // ~/.bom/boilerplatesがなければ作る。既に存在すればErrorを返すが問題なし。
+    fs::create_dir(&path);
 
     //add
     if let Some(ref matches) = matches.subcommand_matches("add") {
@@ -44,21 +46,16 @@ fn main() {
             if matches.is_present("force") {
                 match fs::read_dir(&target) {
                     Err(err) => panic!("{}", err),
-                    Ok(_)    => {
-                        match commands::delete(&target) {
-                            Ok(_)    => {},
-                            Err(err) => panic!("{}", err),
-                        }
-                    }
+                    Ok(_)    => commands::delete(&target).unwrap()
                 }
             }
-
             fs::create_dir(&target).expect("can't create dir");
 
-            match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o), &root).expect("Can't get ignore"), ""){
+            match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o), &root).expect("Can't get ignore"), "") {
                 Ok(_)    => println!("\nFinish"),
-                Err(err) => panic!("{}", err),
-            };
+                Err(why) => panic!("{}", why),
+            }
+
         }
     }
 
@@ -68,7 +65,7 @@ fn main() {
             target = path.join(name);
 
             match commands::delete(&target) {
-                Ok(_)    => println!("removed {}", name),
+                Ok(_)    => println!("Removed {}", name),
                 Err(err) => panic!("{}", err),
             }
         }
@@ -78,10 +75,7 @@ fn main() {
     if let Some(_) = matches.subcommand_matches("ls") {
         println!("\nBoilerplate List\n");
         
-        match commands::list(&path) {
-            Ok(_)    => {},
-            Err(err) => panic!("{}", err),
-        }
+        commands::list(&path).unwrap();
         print!("\n");
     }
 
@@ -101,11 +95,9 @@ fn main() {
             for c in stdin.keys() {
                 match c.unwrap() {
                     Key::Char('\n') => break,
+
                     Key::Ctrl('c')  => {
-                        // write!(stdout, "{}", termion::cursor::Goto(0, 1));
-                        // stdout.flush().unwrap();
                         pressed_ctrl_c = true;
-                        // std::process::exit(0);
                         break;
                     }
 
@@ -208,17 +200,14 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("ignore") {
         if let Some(_) = matches.subcommand_matches("ls") {
             println!("\n Global ignore files\n");
-            match commands::ignore_list(&root) {
-                Ok(_)    => {},
-                Err(err) => panic!("{}", err),
-            }
-            println!("");
+            commands::ignore_list(&root).unwrap();
+            print!("\n");
         }
 
         if let Some(matches) = matches.subcommand_matches("add") {
             if let Some(n) = matches.value_of("name") {
                 match commands::ignore_add(&root, n.to_string()) {
-                    Ok(_)    => {println!("add {} to ignore list", n)},
+                    Ok(_)    => println!("Add {} to ignore list", n),
                     Err(err) => panic!("{}", err),
                 }
             } else {
@@ -231,7 +220,7 @@ fn main() {
         if let Some(matches) = matches.subcommand_matches("rm") {
             if let Some(n) = matches.value_of("name") {
                 match commands::ignore_remove(&root, n.to_string()) {
-                    Ok(_)  => {println!("Remove {} from ignore list", n)},
+                    Ok(_)  => println!("Remove {} from ignore list", n),
                     Err(_) => println!("Can't find {}", n),
                 }
             } else {
