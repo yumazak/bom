@@ -15,43 +15,43 @@ use termion::raw::IntoRawMode;
 
 fn main() {
     let matches = cli::build_cli().get_matches();
-    let path;
-    let root;
-    let mut target;
+    let boilerplates_path;
+    let global_ignore_path;
+    let mut target_project_path;
 
     match env::home_dir() {
-        Some(p) => {
-            path = p.join(".bom/boilerplates");
-            root = p.join(".bom/.bomignore");
+        Some(home_path) => {
+            boilerplates_path  = home_path.join(".bom/boilerplates");
+            global_ignore_path = home_path.join(".bom/.bomignore");
         }
         None => panic!("Impossible to get your home dir!"),
     }
     
     // ~/.bom/boilerplatesがなければ作る。既に存在すればErrorを返すが問題なし。
-    fs::create_dir(&path);
+    fs::create_dir(&boilerplates_path);
 
     //add
     if let Some(ref matches) = matches.subcommand_matches("add") {
-        if let Some(o) = matches.value_of("url") {
-            if let Some(n) = matches.value_of("name") {
-                target = path.join(n);
+        if let Some(arg_target_project_path) = matches.value_of("Target Project path") {
+            if let Some(n) = matches.value_of("New Boilerplate name") {
+                target_project_path = boilerplates_path.join(n);
             } else {
-                if o == "." {
-                    target = path.join(env::current_dir().unwrap().as_path().file_name().unwrap());
+                if arg_target_project_path == "." {
+                    target_project_path = boilerplates_path.join(env::current_dir().unwrap().as_path().file_name().unwrap());
                 } else {
-                    target = path.join(Path::new(o).file_name().unwrap());
+                    target_project_path = boilerplates_path.join(Path::new(arg_target_project_path).file_name().unwrap());
                 }
             }
 
             if matches.is_present("force") {
-                match fs::read_dir(&target) {
+                match fs::read_dir(&target_project_path) {
                     Err(err) => panic!("{}", err),
-                    Ok(_)    => commands::delete(&target).unwrap()
+                    Ok(_)    => commands::delete(&target_project_path).unwrap()
                 }
             }
-            fs::create_dir(&target).expect("can't create dir");
+            fs::create_dir(&target_project_path).expect("Can't create dir");
 
-            match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o), &root).expect("Can't get ignore"), "") {
+            match commands::add(Path::new(arg_target_project_path), &target_project_path, &commands::get_ignore(Path::new(arg_target_project_path), &global_ignore_path).expect("Can't get ignore"), "") {
                 Ok(_)    => println!("\nFinish"),
                 Err(why) => panic!("{}", why),
             }
@@ -61,11 +61,11 @@ fn main() {
 
     //remove
     if let Some(ref matches) = matches.subcommand_matches("rm") {
-        if let Some(name) = matches.value_of("name") {
-            target = path.join(name);
+        if let Some(target_boilerplate_name) = matches.value_of("Boilerplate name") {
+            target_project_path = boilerplates_path.join(target_boilerplate_name);
 
-            match commands::delete(&target) {
-                Ok(_)    => println!("Removed {}", name),
+            match commands::delete(&target_project_path) {
+                Ok(_)    => println!("Removed {}", target_boilerplate_name),
                 Err(err) => panic!("{}", err),
             }
         }
@@ -75,7 +75,7 @@ fn main() {
     if let Some(_) = matches.subcommand_matches("ls") {
         println!("\nBoilerplate List\n");
         
-        commands::list(&path).unwrap();
+        commands::list(&boilerplates_path).unwrap();
         print!("\n");
     }
 
@@ -89,7 +89,7 @@ fn main() {
             let mut stdout           = stdout().into_raw_mode().unwrap();
             let mut cuurent_position = 0;
             let     stdin            = stdin();
-            let     projects         = commands::get_projects(&path).unwrap();
+            let     projects         = commands::get_projects(&boilerplates_path).unwrap();
 
             commands::show_projects_with_key_position(&mut stdout, cuurent_position, projects.clone());
             for c in stdin.keys() {
@@ -167,27 +167,32 @@ fn main() {
         }
 
         if boiler_name.is_empty() {
-            if let Some(name) = matches.value_of("boiler_name") {
-                boiler_name = name.to_string();
+            if let Some(boiler_name_arg) = matches.value_of("Boilerplate name") {
+                println!("{}", boiler_name_arg);
+                boiler_name = boiler_name_arg.to_string();
             }
         }
 
         if project_name.is_empty() {
-            if let Some(name) = matches.value_of("project_name") {
-                project_name = name.to_string();
+            if let Some(project_name_arg) = matches.value_of("Project name") {
+                println!("{}", project_name_arg);
+                project_name = project_name_arg.to_string();
+            } else {
+                project_name = boiler_name.clone();
             }
         }
 
-        if commands::has_boiler(&boiler_name, &path).unwrap() {
+        if commands::has_boiler(&boiler_name, &boilerplates_path).unwrap() {
             if project_name == "." {
-                target = env::current_dir().unwrap();
+                target_project_path = env::current_dir().unwrap();
             } else {
-                target = Path::new(&project_name).to_path_buf();
+                target_project_path = Path::new(&project_name).to_path_buf();
             }
 
-            fs::create_dir(&target).expect("Can't create dir");
-
-            match commands::add(&path.join(&boiler_name), &target, &commands::get_ignore(&path.join(&boiler_name), &root).expect("Can't get ignore"), ""){
+            fs::create_dir(&target_project_path).expect("Can't create dir");
+            println!("{:?}", boilerplates_path.join(&boiler_name));
+            println!("{:?}", global_ignore_path);
+            match commands::add(&boilerplates_path.join(&boiler_name), &target_project_path, &commands::get_ignore(&boilerplates_path.join(&boiler_name), &global_ignore_path).unwrap(), ""){
                 Ok(_)  => println!("success"),
                 Err(_) => println!("Error"),
             };
@@ -200,14 +205,14 @@ fn main() {
     if let Some(ref matches) = matches.subcommand_matches("ignore") {
         if let Some(_) = matches.subcommand_matches("ls") {
             println!("\n Global ignore files\n");
-            commands::ignore_list(&root).unwrap();
+            commands::ignore_list(&global_ignore_path).unwrap();
             print!("\n");
         }
 
         if let Some(matches) = matches.subcommand_matches("add") {
-            if let Some(n) = matches.value_of("name") {
-                match commands::ignore_add(&root, n.to_string()) {
-                    Ok(_)    => println!("Add {} to ignore list", n),
+            if let Some(ignore_file_name) = matches.value_of("Add target ignore file name") {
+                match commands::ignore_add(&global_ignore_path, ignore_file_name.to_string()) {
+                    Ok(_)    => println!("Add {} to ignore list", ignore_file_name),
                     Err(err) => panic!("{}", err),
                 }
             } else {
@@ -218,10 +223,10 @@ fn main() {
         }
 
         if let Some(matches) = matches.subcommand_matches("rm") {
-            if let Some(n) = matches.value_of("name") {
-                match commands::ignore_remove(&root, n.to_string()) {
-                    Ok(_)  => println!("Remove {} from ignore list", n),
-                    Err(_) => println!("Can't find {}", n),
+            if let Some(ignore_file_name) = matches.value_of("Remove target ignore file name") {
+                match commands::ignore_remove(&global_ignore_path, ignore_file_name.to_string()) {
+                    Ok(_)  => println!("Remove {} from ignore list", ignore_file_name),
+                    Err(_) => println!("Can't find {}", ignore_file_name),
                 }
             } else {
                 println!("Nothing");

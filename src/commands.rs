@@ -7,86 +7,98 @@ use std::path::Path;
 use termion;
 use termion::{color, style};
 
-pub fn add(dir: &Path, target: &Path, ignore: &Vec<String>, root: &str) -> io::Result<()> {
-    if dir.is_dir() {
-        for entry in fs::read_dir(dir)? {
-            let mut root2 = root.to_string();
+pub fn add(relative_target_project_path: &Path, full_target_path: &Path, ignore_file_names: &Vec<String>, global_ignore_path: &str) -> io::Result<()> {
+    if relative_target_project_path.is_dir() {
+        for entry in fs::read_dir(relative_target_project_path)? {
+            let mut root2 = global_ignore_path.to_string();
             let     entry = entry?;
             let     path  = entry.path();
-            let     ta    = &target.join(&path.file_name().unwrap());
+            let     ta    = &full_target_path.join(&path.file_name().unwrap());
 
             root2.push_str(path.file_name().unwrap().to_str().unwrap());
 
             if path.is_dir() {
-                if ignore.contains(&root2) { continue; }
+                if ignore_file_names.contains(&root2) { continue; }
                 root2.push_str("/");                
                 fs::create_dir(ta)?;
-                add(&path, ta, ignore, &root2)?;
+                add(&path, ta, ignore_file_names, &root2)?;
             } else {
-                if ignore.contains(&root2) { continue; }
+                if ignore_file_names.contains(&root2) { continue; }
                 fs::copy(&path, ta)?;
             }
         }
     }
     Ok(())
 }
-pub fn get_ignore(dir: &Path, root: &Path) -> io::Result<Vec<String>> {
-    let mut v: Vec<String>  = vec![];
-    let mut v2: Vec<String> = vec![];
-    let mut s               = String::new();
-    let     path            = dir.join(".bomignore");
 
-    let mut file = try!(File::open(&path));
+//addでもinitでも呼ばれる。 => boilerplateでもprojectでも使われる
+//.bomignoreがなければ空の配列を返す
+pub fn get_ignore(target_project_path: &Path, global_ignore_path: &Path) -> io::Result<Vec<String>> {
+    let mut ignore_file_names: Vec<String>        = vec![];
+    let mut global_ignore_file_names: Vec<String> = vec![];
+    let mut file_names                            = String::new();
+    let     target_project_ignore_path            = target_project_path.join(".bomignore");
 
-    let mut env_ignore = try!(File::open(&root));
+    // let mut project_ignore_file: File;
+    // let mut global_ignore_file:  File;
 
-    if file.read_to_string(&mut s).is_ok() {
-        v = s.split_whitespace().map(|s| s.to_string()).collect()
-    } else {
-        println!("Can't read {:?}", dir);
-    }
+    match File::open(&target_project_ignore_path) {
+        Err(_)   => {},
+        Ok(mut project_ignore_file) => {
+            if project_ignore_file.read_to_string(&mut file_names).is_ok() {
+                ignore_file_names = file_names.split_whitespace().map(|file_names| file_names.to_string()).collect()
+            } else {
+                println!("Can't read {:?}", target_project_path);
+            }
+        }
+    };
 
-    if env_ignore.read_to_string(&mut s).is_ok() {
-        v2 = s.split_whitespace().map(|s| s.to_string()).collect();
-        v.extend(v2.iter().cloned());
-    } else {
-        println!("Can't read {:?}", root)
-    }
+    match File::open(&global_ignore_path) {
+        Err(_)   => {},
+        Ok(mut global_ignore_file) => {
+            if global_ignore_file.read_to_string(&mut file_names).is_ok() {
+                global_ignore_file_names = file_names.split_whitespace().map(|file_names| file_names.to_string()).collect();
+                ignore_file_names.extend(global_ignore_file_names.iter().cloned());
+            } else {
+                println!("Can't read {:?}", global_ignore_path)
+            }
+        }
+    };
 
-    Ok(v)
+    Ok(ignore_file_names)
 } 
 
-pub fn delete(path: &Path) -> io::Result<()> {
-    for entry in fs::read_dir(path)? {
+pub fn delete(target_project_path: &Path) -> io::Result<()> {
+    for entry in fs::read_dir(target_project_path)? {
         let entry = entry?;
-        let path  = entry.path();
+        let target_project_path  = entry.path();
 
-        if path.is_dir() {
-            delete(&path)?;
+        if target_project_path.is_dir() {
+            delete(&target_project_path)?;
         } else {
-            fs::remove_file(&path)?;
+            fs::remove_file(&target_project_path)?;
         }
     }
 
-    fs::remove_dir_all(path)?;
+    fs::remove_dir_all(target_project_path)?;
 
     Ok(())
 }
 // -> io::Result<Vec<String>>
-pub fn get_projects (path: &Path) -> io::Result<Vec<String>> {
+pub fn get_projects (target_project_path: &Path) -> io::Result<Vec<String>> {
     let mut projects = Vec::new();
 
-    for entry in fs::read_dir(path)? {
+    for entry in fs::read_dir(target_project_path)? {
         let entry = entry?;
-        let path  = entry.path();
+        let target_project_path  = entry.path();
         
-        if path.is_dir() {
-            match path.file_name().unwrap().to_str() {
+        if target_project_path.is_dir() {
+            match target_project_path.file_name().unwrap().to_str() {
                 Some(project) => projects.push(project.to_string()),
                 None          => println!("Error")
             }
         } else {
-            let project = path.file_name().unwrap().to_str().unwrap().to_string();
+            let project = target_project_path.file_name().unwrap().to_str().unwrap().to_string();
             projects.push(project);
         }
     }
@@ -94,7 +106,7 @@ pub fn get_projects (path: &Path) -> io::Result<Vec<String>> {
     Ok(projects)
 }
 
-pub fn show_projects_with_key_position<W: Write> (screen: &mut W, positon: usize, projects: Vec<String>) {
+pub fn show_projects_with_key_position<W: Write> (screen: &mut W, cursor_positon: usize, projects: Vec<String>) {
     let position_x = 4;
     let offset_y   = 4;
 
@@ -104,7 +116,7 @@ pub fn show_projects_with_key_position<W: Write> (screen: &mut W, positon: usize
     for i in 0..projects.len() {
         write!(screen, "{}{}", termion::cursor::Goto(position_x, (i + offset_y) as u16), termion::cursor::Hide);
         
-        if i == positon {
+        if i == cursor_positon {
             println!("‣{} {}{}", color::Fg(color::Green), projects[i], style::Reset);
         } else {
             println!(" {}", projects[i]);
@@ -114,22 +126,22 @@ pub fn show_projects_with_key_position<W: Write> (screen: &mut W, positon: usize
     screen.flush().unwrap();
 }
 
-pub fn list(path: &Path) -> io::Result<()> {
+pub fn list(target_project_path: &Path) -> io::Result<()> {
     let mut has_boiler = false;
 
-    for entry in fs::read_dir(path)? {
+    for entry in fs::read_dir(target_project_path)? {
         let entry = entry?;
-        let path  = entry.path();
+        let target_project_path  = entry.path();
 
-        if path.is_dir() {
+        if target_project_path.is_dir() {
             has_boiler = true;
 
-            match path.file_name().unwrap().to_str() {
+            match target_project_path.file_name().unwrap().to_str() {
                 Some(name) => println!("  ‣ {}", name),
                 _          => println!("can't read boiler"),
             }
         } else {
-            println!("{:?}", path.file_name().unwrap());
+            println!("{:?}", target_project_path.file_name().unwrap());
         }
     }
     
@@ -138,13 +150,13 @@ pub fn list(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-pub fn has_boiler(boiler_name: &str, path: &Path) -> io::Result<(bool)> {
-    for entry in fs::read_dir(path)? {
+pub fn has_boiler(boiler_name: &str, boilerplates_path: &Path) -> io::Result<(bool)> {
+    for entry in fs::read_dir(boilerplates_path)? {
         let entry = entry?;
-        let path  = entry.path();
+        let boilerplates_path  = entry.path();
 
-        if path.is_dir() {
-            match path.file_name().unwrap().to_str() {
+        if boilerplates_path.is_dir() {
+            match boilerplates_path.file_name().unwrap().to_str() {
                 Some(name) => {
                     if name == boiler_name {
                         return Ok(true)
@@ -153,18 +165,18 @@ pub fn has_boiler(boiler_name: &str, path: &Path) -> io::Result<(bool)> {
                 _ => println!("Can't read boiler"),
             }
         } else {
-            println!("{:?}", path.file_name().unwrap());
+            println!("{:?}", boilerplates_path.file_name().unwrap());
         }
     }
 
     Ok(false)
 }
 
-pub fn ignore_list(ignore_path: &Path) -> io::Result<()> {
+pub fn ignore_list(global_ignore_path: &Path) -> io::Result<()> {
     let mut s = String::new();
     let mut v: Vec<String> = vec![];
     
-    let mut global_ignore = File::open(&ignore_path)?;
+    let mut global_ignore = File::open(&global_ignore_path)?;
 
     match global_ignore.read_to_string(&mut s) {
         Err(why) => { panic!("{}", why); },
@@ -179,11 +191,11 @@ pub fn ignore_list(ignore_path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-pub fn ignore_add(ignore_path: &Path, name: String) -> io::Result<()> {
+pub fn ignore_add(global_ignore_path: &Path, target_ignore_file_name: String) -> io::Result<()> {
     let mut v: Vec<String> = vec![];
     let mut s              = String::new();
     
-    match File::open(&ignore_path) {
+    match File::open(&global_ignore_path) {
         Err(why)     => panic!("{}", why),
         Ok(mut file) => {
             match file.read_to_string(&mut s) {
@@ -193,11 +205,11 @@ pub fn ignore_add(ignore_path: &Path, name: String) -> io::Result<()> {
         }
     };
 
-    fs::remove_file(ignore_path)?;
+    fs::remove_file(global_ignore_path)?;
 
-    let mut buffer = File::create(ignore_path)?;
+    let mut buffer = File::create(global_ignore_path)?;
 
-    v.push(name);
+    v.push(target_ignore_file_name);
 
     for n in &v {
         buffer.write_all(n.as_bytes())?;
@@ -207,11 +219,11 @@ pub fn ignore_add(ignore_path: &Path, name: String) -> io::Result<()> {
     Ok(())
 }
 
-pub fn ignore_remove(ignore_path: &Path, name: String) -> io::Result<()> {
+pub fn ignore_remove(global_ignore_path: &Path, target_ignore_file_name: String) -> io::Result<()> {
     let mut v: Vec<String> = vec![];
     let mut s              = String::new();
     
-    match File::open(&ignore_path) {
+    match File::open(&global_ignore_path) {
         Err(why)     => panic!("{}", why),
         Ok(mut file) => {
             match file.read_to_string(&mut s) {
@@ -220,14 +232,14 @@ pub fn ignore_remove(ignore_path: &Path, name: String) -> io::Result<()> {
             }
         }
     };
-    if !v.contains(&name) { return Ok(()); }
+    if !v.contains(&target_ignore_file_name) { return Ok(()); }
 
-    fs::remove_file(ignore_path)?;
+    fs::remove_file(global_ignore_path)?;
 
-    let mut buffer = File::create(ignore_path)?;
+    let mut buffer = File::create(global_ignore_path)?;
 
     for n in &v {
-        if(n.to_string() == name) { continue; }
+        if(n.to_string() == target_ignore_file_name) { continue; }
         
         buffer.write_all(n.as_bytes())?;
         buffer.write_all(b"\n")?;
