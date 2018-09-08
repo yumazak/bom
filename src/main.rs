@@ -7,12 +7,11 @@ mod commands;
 use std::fs;
 use std::path::Path;
 use std::env;
-use std::io::{self, Read, Write, stdin, stdout};
+use std::io::{self, Write, stdin, stdout};
 
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
-use termion::screen::*;
 
 fn main() {
     let matches = cli::build_cli().get_matches();
@@ -26,7 +25,8 @@ fn main() {
         }
         None => panic!("Impossible to get your home dir!"),
     }
-    fs::create_dir(&path);
+    fs::create_dir(&path).expect("can't create dir");
+
     //add
     if let Some(ref matches) = matches.subcommand_matches("add") {
         if let Some(o) = matches.value_of("url") {
@@ -52,13 +52,9 @@ fn main() {
                 }
             }
 
-            match fs::create_dir(&target) {
-                Ok(_) => {},
-                Err(err) => {
-                    panic!("{}", err);
-                }
-            }
-            match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o), &root), ""){
+            fs::create_dir(&target).expect("can't create dir");
+
+            match commands::add(Path::new(o), &target, &commands::get_ignore(Path::new(o), &root).expect("Can't get ignore"), ""){
                 Ok(_) => println!("success"),
                 Err(err) => println!("{}", err),
             };
@@ -88,8 +84,9 @@ fn main() {
 
     //init
     if let Some(ref matches) = matches.subcommand_matches("init") {
-        let mut boiler_name  = String::new();
-        let mut project_name = String::new();
+        let mut boiler_name    = String::new();
+        let mut project_name   = String::new();
+        let mut pressed_ctrl_c = false;
 
         if matches.is_present("interactive") {
             let mut stdout           = stdout().into_raw_mode().unwrap();
@@ -98,11 +95,16 @@ fn main() {
             let     projects         = commands::get_projects(&path).unwrap();
 
             commands::show_projects_with_key_position(&mut stdout, cuurent_position, projects.clone());
-
             for c in stdin.keys() {
                 match c.unwrap() {
-                    Key::Char('\n') | Key::Ctrl('c') => break,
-
+                    Key::Char('\n') => break,
+                    Key::Ctrl('c') => {
+                        // write!(stdout, "{}", termion::cursor::Goto(0, 1));
+                        // stdout.flush().unwrap();
+                        pressed_ctrl_c = true;
+                        // std::process::exit(0);
+                        break;
+                    }
                     Key::Down => {
                         if cuurent_position < projects.len() - 1 { cuurent_position += 1; }
                         commands::show_projects_with_key_position(&mut stdout, cuurent_position, projects.clone());
@@ -117,16 +119,24 @@ fn main() {
                 }
                 stdout.flush().unwrap();
             }
-            let stdin = io::stdin();
-            let mut stdin = stdin.lock();
+
+            let stdin                = io::stdin();
+            let mut stdin            = stdin.lock();
             let mut is_started_input = false;
-            boiler_name = projects[cuurent_position].clone();
+            boiler_name              = projects[cuurent_position].clone();
+            if pressed_ctrl_c { return; }
+
             print!("{}Project name: {}{}", termion::cursor::Goto(0, 5 + projects.len() as u16), &boiler_name, termion::cursor::Show);
+
+            //input Project name
             stdout.flush().unwrap();
             for c in stdin.keys() {
                 match c.unwrap() {
-                    Key::Char('\n') | Key::Ctrl('c') => break,
-
+                    Key::Char('\n') => break,
+                    Key::Ctrl('c') => {
+                        pressed_ctrl_c = true;
+                        break;
+                    }
                     Key::Char(c) => {
                         if !is_started_input {
                             is_started_input = true;
@@ -145,15 +155,16 @@ fn main() {
                         let line = format!("Project name: {}", project_name);
                         print!("{}{}{}", termion::clear::CurrentLine, termion::cursor::Left(line.len() as u16 + 1), line);
                     }
-                    any => println!("{:?}", any)
+                    _ => {}
                 }
                 stdout.flush().unwrap();
             }
+
+            if pressed_ctrl_c { return; }
+
             stdout.flush().unwrap();
 
             if !is_started_input { project_name = boiler_name.clone() }
-            // let project_name = stdin.read_line().unwrap().unwrap();
-            // println!("{}", project_name);         
         }
 
         if boiler_name.is_empty() {
@@ -180,7 +191,7 @@ fn main() {
                 Ok(_) => {},
                 Err(_) => {},
             }
-            match commands::add(&path.join(&boiler_name), &target, &commands::get_ignore(&path.join(&boiler_name), &root), ""){
+            match commands::add(&path.join(&boiler_name), &target, &commands::get_ignore(&path.join(&boiler_name), &root).expect("Can't get ignore"), ""){
                 Ok(_) => println!("success"),
                 Err(_) => println!("Error"),
             };
