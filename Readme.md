@@ -40,8 +40,18 @@ bom ls
 第一引数にテンプレート名、第二引数にプロジェクト名を受け取ります。  
 プロジェクト名を省略した場合、テンプレート名で作成されます。
 ```bash
-bom init [template_name] <project_name>
+bom init <template_name> <project_name>
 ```  
+
+また、 -iをつけるとキー操作で選択できる
+```bash
+$ bom init -i
+
+Boilerplate List
+
+   ‣ boiler1
+    boiler2
+```
 ## ignore
 テンプレートに加えないファイル、フォルダのグローバル設定をします。
 デフォルトでは".git"と".bomignore"が設定されています。
