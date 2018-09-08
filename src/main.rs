@@ -45,7 +45,7 @@ fn main() {
 
             if matches.is_present("force") {
                 match fs::read_dir(&target_project_path) {
-                    Err(err) => panic!("{}", err),
+                    Err(err) => {},
                     Ok(_)    => commands::delete(&target_project_path).unwrap()
                 }
             }
