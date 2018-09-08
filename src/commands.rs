@@ -71,7 +71,7 @@ pub fn get_ignore(target_project_path: &Path, global_ignore_path: &Path) -> io::
 pub fn delete(target_project_path: &Path) -> io::Result<()> {
     for entry in fs::read_dir(target_project_path)? {
         let entry = entry?;
-        let target_project_path  = entry.path();
+        let target_project_path = entry.path();
 
         if target_project_path.is_dir() {
             delete(&target_project_path)?;
