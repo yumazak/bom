@@ -109,8 +109,6 @@ pub fn get_projects (target_project_path: &Path) -> io::Result<Vec<String>> {
 pub fn show_projects_with_key_position<W: Write> (screen: &mut W, cursor_positon: usize, projects: Vec<String>) {
     write!(screen, "{}", termion::cursor::Restore);  
     write!(screen, "{}", termion::clear::AfterCursor);
-    screen.flush().unwrap();
-
     write!(screen, "{}", termion::cursor::Save);
 
     print!("Boilerplate List");
