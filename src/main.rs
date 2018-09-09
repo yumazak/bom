@@ -114,7 +114,7 @@ fn main() {
 
                     _ => {}
                 }
-                stdout.flush().unwrap();
+                // stdout.flush().unwrap();
             }
 
             let stdin                = io::stdin();
