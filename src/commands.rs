@@ -107,21 +107,29 @@ pub fn get_projects (target_project_path: &Path) -> io::Result<Vec<String>> {
 }
 
 pub fn show_projects_with_key_position<W: Write> (screen: &mut W, cursor_positon: usize, projects: Vec<String>) {
-    let position_x = 4;
-    let offset_y   = 4;
+    write!(screen, "{}", termion::cursor::Restore);  
+    write!(screen, "{}", termion::clear::AfterCursor);
+    screen.flush().unwrap();
 
-    write!(screen, "{}{}{}", termion::clear::All, termion::cursor::Goto(0, 1), termion::cursor::Hide);
-    println!("\nBoilerplate List\n");
+    write!(screen, "{}", termion::cursor::Save);
 
+    print!("Boilerplate List");
+    write!(screen, "{}{}", termion::cursor::Restore, termion::cursor::Down(1));
     for i in 0..projects.len() {
-        write!(screen, "{}{}", termion::cursor::Goto(position_x, (i + offset_y) as u16), termion::cursor::Hide);
-        
+        write!(screen, "{}", termion::cursor::Down(1));
+        write!(screen, "{}", termion::cursor::Save);
+        write!(screen, "{}", termion::cursor::Right(4));
+
         if i == cursor_positon {
             println!("‣{} {}{}", color::Fg(color::Green), projects[i], style::Reset);
         } else {
             println!(" {}", projects[i]);
         }
+        write!(screen, "{}", termion::cursor::Restore);  
     }
+
+    write!(screen, "{}", termion::cursor::Up(projects.len() as u16 + 1));
+    write!(screen, "{}", termion::cursor::Save);
 
     screen.flush().unwrap();
 }

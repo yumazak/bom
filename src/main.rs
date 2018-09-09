@@ -114,7 +114,6 @@ fn main() {
 
                     _ => {}
                 }
-                stdout.flush().unwrap();
             }
 
             let stdin                = io::stdin();
@@ -125,7 +124,8 @@ fn main() {
             print!("{}", termion::cursor::Show);
             if pressed_ctrl_c { return; }
             
-            print!("{}Project name: {}{}{}", termion::cursor::Goto(0, 5 + projects.len() as u16), color::Fg(color::LightBlack), &boiler_name, style::Reset);
+            //Boilerplatet Listと改行があるので + 3している (マジックナンバーどうにかしたい)
+            print!("{}Project name: {}{}{}", termion::cursor::Down(projects.len() as u16 + 3), color::Fg(color::LightBlack), &boiler_name, style::Reset);
             print!("{}", termion::cursor::Left(boiler_name.len() as u16));
 
             //input Project name
