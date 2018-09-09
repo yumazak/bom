@@ -107,17 +107,13 @@ pub fn get_projects (target_project_path: &Path) -> io::Result<Vec<String>> {
 }
 
 pub fn show_projects_with_key_position<W: Write> (screen: &mut W, cursor_positon: usize, projects: Vec<String>) {
-    let position_x = 4;
-    let offset_y   = 4;
     write!(screen, "{}", termion::cursor::Restore);  
     write!(screen, "{}", termion::clear::AfterCursor);
     screen.flush().unwrap();
 
-    // write!(screen, "{}", termion::cursor::Down(1));
     write!(screen, "{}", termion::cursor::Save);
-    // write!(screen, "{}", termion::cursor::Hide);
 
-    println!("Boilerplate List");
+    print!("Boilerplate List");
     write!(screen, "{}{}", termion::cursor::Restore, termion::cursor::Down(1));
     for i in 0..projects.len() {
         write!(screen, "{}", termion::cursor::Down(1));
