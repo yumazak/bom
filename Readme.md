@@ -3,6 +3,16 @@
 bomはBoilerplateやテンプレートを簡単に管理するためのCLIツールです。
 
 ## インストール方法
+### Cargoがインストールされている場合
+```bash
+$ git clone https://github.com/uma0317/bom.git
+$ cd bom
+$ sh build.sh
+$ bom -V
+bom 0.1.0
+```
+
+### Cargoがない場合
 
 まず[Google Drive](https://drive.google.com/drive/u/0/folders/1TdUFsazCp053W2KYk0g9qQ23DhirXqwG)から自分のOSに合わせたインストーラをダウンロードします。  
 そして実行ファイルを実行して完了。ホームディレクトリ直下に.bomというフォルダを作成します。  
@@ -10,6 +20,7 @@ bomはBoilerplateやテンプレートを簡単に管理するためのCLIツー
 
 ```bash
 bom -V
+bom 0.1.0
 ```
 
 
