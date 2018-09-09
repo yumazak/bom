@@ -122,10 +122,11 @@ fn main() {
             let mut is_started_input = false;
             boiler_name              = projects[cuurent_position].clone();
 
+            print!("{}", termion::cursor::Show);
             if pressed_ctrl_c { return; }
             
             print!("{}Project name: {}{}{}", termion::cursor::Goto(0, 5 + projects.len() as u16), color::Fg(color::LightBlack), &boiler_name, style::Reset);
-            print!("{}{}", termion::cursor::Left(boiler_name.len() as u16), termion::cursor::Show);
+            print!("{}", termion::cursor::Left(boiler_name.len() as u16));
 
             //input Project name
             stdout.flush().unwrap();
