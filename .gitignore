@@ -4,4 +4,4 @@
 /test/
 /boilerplates/
 /.bomignore
-/*.sh;
+*.sh
