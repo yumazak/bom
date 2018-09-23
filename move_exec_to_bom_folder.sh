@@ -1,1 +1,1 @@
-mv target/release/bom ~/.bom/bin
+mv target/release/bom ~/.cargo/bin
