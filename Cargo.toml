@@ -5,6 +5,7 @@ authors = ["uma <blog3170@gmail.com>"]
 repository = "https://github.com/uma0317/bom"
 description = "boilerplate manager CLI"
 readme = "Readme.md"
+licence = "MIT"
 
 [dependencies]
 clap = "2.31.2"
