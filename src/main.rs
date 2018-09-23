@@ -22,16 +22,22 @@ fn main() {
 
     match env::home_dir() {
         Some(home_path) => {
-            fs::create_dir(home_path.join(".bom"));
+            let bom_path = home_path.join(".bom");
+            if(!bom_path.exists()) {fs::create_dir(bom_path);}
+
             boilerplates_path  = home_path.join(".bom/boilerplates");
             global_ignore_path = home_path.join(".bom/.bomignore");
         }
         None => panic!("Impossible to get your home dir!"),
     }
 
-    // ~/.bom/boilerplatesがなければ作る。既に存在すればErrorを返すが問題なし。
-    fs::create_dir(&boilerplates_path);
-    fs::File::create(&global_ignore_path);
+    if(!&boilerplates_path.exists()) {
+        fs::create_dir(&boilerplates_path);
+    }
+
+    if(!&global_ignore_path.exists()) {
+        fs::File::create(&global_ignore_path); 
+    }
 
     //add
     if let Some(ref matches) = matches.subcommand_matches("add") {
